@@ -20,7 +20,7 @@ const UploadButton = () => {
           <Button>Upload PDF</Button>
         </DialogTrigger>
 
-        <DialogContent>Text</DialogContent>
+        <DialogContent>{/* display all user files*/}</DialogContent>
       </Dialog>
     </>
   );
