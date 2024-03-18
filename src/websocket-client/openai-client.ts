@@ -6,9 +6,8 @@ import {
 } from "@/proto/api/api_common";
 import {
   EmbeddingPdfRequest,
-  encodeEmbeddingPdfRequest,
+  QueryTextRequest,
 } from "@/proto/api/featherpdf_api";
-import { fileURLToPath } from "url";
 import WebSocket from "ws";
 
 // https://www.npmjs.com/package/ws
@@ -28,15 +27,9 @@ class WebSocketService {
     });
 
     this.ws.on("open", () => {
-      // const ping = encodeRequest({
-      //   action: Action.PING,
-      //   content: "Hello",
-      // });
-      // this.ws.send(ping);
       resolveOpenPromise(); // 解决打开Promise
     });
 
-    // 接收到服务端的消息时
     this.ws.on("message", (data: any) => {
       const response = decodeResponse(new Uint8Array(data));
     });
@@ -62,6 +55,19 @@ class WebSocketService {
       content: JSON.stringify({
         fileUrl: req.fileUrl,
         filename: req.filename,
+        indexName: req.indexName,
+        fileId: req.fileId,
+      }),
+    });
+    this.ws?.send(request);
+  }
+
+  public async embeddingTextQuery(req: QueryTextRequest) {
+    await this.openPromise;
+    const request = encodeRequest({
+      action: Action.EMBEDDING_QUERY_TEXT,
+      content: JSON.stringify({
+        text: req.text,
         indexName: req.indexName,
         fileId: req.fileId,
       }),

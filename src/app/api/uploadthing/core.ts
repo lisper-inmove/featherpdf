@@ -1,8 +1,6 @@
 import { db } from "@/db";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
-import { PDFLoader } from "langchain/document_loaders/fs/pdf";
-import { pinecone } from "@/lib/pinecone";
 import WebSocketService from "@/websocket-client/openai-client";
 
 const f = createUploadthing();
@@ -28,13 +26,6 @@ export const ourFileRouter = {
         },
       });
       try {
-        // const response = await fetch(fileUrl);
-        // const blob = await response.blob();
-        // const loader = new PDFLoader(blob);
-        // const pageLevelDocs = await loader.load();
-        // const pageAmt = pageLevelDocs.length;
-        // const pineconeIndex = pinecone.Index("featherpdf");
-
         let wsclient = WebSocketService.getInstance();
         wsclient.embeddingPdf({
           fileUrl,
@@ -42,6 +33,11 @@ export const ourFileRouter = {
           indexName: "featherpdf",
           fileId: createdFile.id,
         });
+        // wsclient.embeddingTextQuery({
+        //   text: "Chopin 什么时候出生的?",
+        //   indexName: "featherpdf",
+        //   fileId: "featherpdf",
+        // });
       } catch (error) {}
     }),
 } satisfies FileRouter;
