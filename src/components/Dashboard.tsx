@@ -2,6 +2,7 @@
 import { clientTrpc } from "@/trpc-config/client";
 import UploadButton from "./UploadButton";
 import { Ghost, Loader2, MessageSquare, Plus, Trash } from "lucide-react";
+import WebSocketService from "@/websocket-client/openai-client";
 import Skeleton from "react-loading-skeleton";
 import Link from "next/link";
 import { format } from "date-fns";

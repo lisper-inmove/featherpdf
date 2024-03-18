@@ -2,12 +2,17 @@
 import { linkDashboard, linkHome } from "@/constants/link-href";
 import { clientTrpc } from "@/trpc-config/client";
 import { Loader2 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-const Page = () => {
+interface PageProps {
+  searchParams: {
+    [key: string]: string | string[] | undefined;
+  };
+}
+
+const Page = ({ searchParams }: PageProps) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const origin = searchParams.get("origin");
+  const origin = searchParams.origin;
 
   const { data, isLoading, error, isError } =
     clientTrpc.authCallback.useQuery();

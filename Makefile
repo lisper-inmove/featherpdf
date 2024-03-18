@@ -8,3 +8,7 @@ dev:
 
 start:
 	npm run start
+
+api:
+	cd src/proto && make api-typescript
+

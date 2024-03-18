@@ -3,7 +3,7 @@ import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { pinecone } from "@/lib/pinecone";
-import { OpenAIEmbeddings } from "langchain/embeddings/openai";
+import WebSocketService from "@/websocket-client/openai-client";
 
 const f = createUploadthing();
 
@@ -28,12 +28,20 @@ export const ourFileRouter = {
         },
       });
       try {
-        const response = await fetch(fileUrl);
-        const blob = await response.blob();
-        const loader = new PDFLoader(blob);
-        const pageLevelDocs = await loader.load();
-        const pageAmt = pageLevelDocs.length;
-        const pineconeIndex = pinecone.Index("featherpdf");
+        // const response = await fetch(fileUrl);
+        // const blob = await response.blob();
+        // const loader = new PDFLoader(blob);
+        // const pageLevelDocs = await loader.load();
+        // const pageAmt = pageLevelDocs.length;
+        // const pineconeIndex = pinecone.Index("featherpdf");
+
+        let wsclient = WebSocketService.getInstance();
+        wsclient.embeddingPdf({
+          fileUrl,
+          filename: file.name,
+          indexName: "featherpdf",
+          fileId: createdFile.id,
+        });
       } catch (error) {}
     }),
 } satisfies FileRouter;
