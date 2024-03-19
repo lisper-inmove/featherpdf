@@ -22,7 +22,7 @@ export const ourFileRouter = {
           userId: metadata.userId,
           // url: file.url,
           url: fileUrl,
-          uploadStatus: "PROCESSING",
+          uploadStatus: "SUCCESS",
         },
       });
       try {
@@ -33,11 +33,6 @@ export const ourFileRouter = {
           indexName: "featherpdf",
           fileId: createdFile.id,
         });
-        // wsclient.embeddingTextQuery({
-        //   text: "Chopin 什么时候出生的?",
-        //   indexName: "featherpdf",
-        //   fileId: "featherpdf",
-        // });
       } catch (error) {}
     }),
 } satisfies FileRouter;

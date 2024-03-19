@@ -17,9 +17,7 @@ const Page = ({ searchParams }: PageProps) => {
   const { data, isLoading, error, isError } =
     clientTrpc.authCallback.useQuery();
   if (isError) {
-    if (error.data?.code === "UNAUTHORIZED") {
-      router.push(linkHome);
-    }
+    router.push(linkHome);
   }
   if (!isError && !isLoading) {
     router.push(origin ? `/${origin}` : linkDashboard);

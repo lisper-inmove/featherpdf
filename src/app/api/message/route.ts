@@ -20,12 +20,18 @@ export const POST = async (req: NextRequest) => {
   });
   if (!file) return new Response("Not Found", { status: 404 });
   // set message to file
-  await db.message.create({
+  const result = await db.message.create({
     data: {
       text: message,
       isUserMessage: true,
       userId: user.id!,
       fileId,
+    },
+  });
+  return new Response(JSON.stringify(result), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
     },
   });
 };
