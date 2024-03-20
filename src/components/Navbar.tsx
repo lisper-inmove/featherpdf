@@ -9,7 +9,7 @@ import {
   LogoutLink,
   RegisterLink,
 } from "@kinde-oss/kinde-auth-nextjs/components";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LogOut } from "lucide-react";
 
 export default function Navbar() {
   const { user } = useKindeBrowserClient();
@@ -23,17 +23,8 @@ export default function Navbar() {
           </Link>
           <div className="hidden items-center space-x-4 sm:flex">
             <>
-              <Link
-                href={linkPricing}
-                className={buttonVariants({
-                  variant: "ghost",
-                  size: "sm",
-                })}
-              >
-                Pricing
-              </Link>
               {user ? (
-                <p>{user.email}</p>
+                <p>{user.given_name}</p>
               ) : (
                 <LoginLink
                   className={buttonVariants({
@@ -51,7 +42,7 @@ export default function Navbar() {
                     size: "sm",
                   })}
                 >
-                  Sign out
+                  <LogOut />
                 </LogoutLink>
               ) : null}
               {!user ? (
@@ -60,7 +51,7 @@ export default function Navbar() {
                     size: "sm",
                   })}
                 >
-                  Register{" "}
+                  Register
                   <ArrowRight className="ml-1.5 h-5 w-5 text-sm"></ArrowRight>
                 </RegisterLink>
               ) : null}

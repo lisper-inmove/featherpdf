@@ -2,6 +2,8 @@ import { db } from "@/db";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import WebSocketService from "@/websocket-client/openai-client";
+import { Action } from "@/proto/api/api_common";
+import { EmbeddingPdfResponse } from "@/proto/api/api_featherpdf";
 
 const f = createUploadthing();
 
@@ -22,11 +24,27 @@ export const ourFileRouter = {
           userId: metadata.userId,
           // url: file.url,
           url: fileUrl,
-          uploadStatus: "SUCCESS",
+          uploadStatus: "PROCESSING",
         },
       });
       try {
+        const EmbeddingPdfCallback = async (data: any) => {
+          const result = data as EmbeddingPdfResponse;
+          await db.file.update({
+            data: {
+              conspectus: result.conspectus,
+              uploadStatus: "SUCCESS",
+            },
+            where: {
+              id: createdFile.id,
+            },
+          });
+        };
         let wsclient = WebSocketService.getInstance();
+        wsclient.registerHandler(
+          Action.EMBEDDING_PDF_RESPONSE,
+          EmbeddingPdfCallback,
+        );
         wsclient.embeddingPdf({
           fileUrl,
           filename: file.name,

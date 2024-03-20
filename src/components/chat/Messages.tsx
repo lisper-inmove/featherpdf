@@ -22,6 +22,7 @@ const Messages = ({ fileId }: MessagesProps) => {
   const { addParamMessage } = useContext(ChatContext);
   const messages = useMessages();
   const [newContent, setNewContent] = useState<string>("");
+  let prevMessage = null;
 
   let client = WebSocketService.getInstance();
 
@@ -48,7 +49,7 @@ const Messages = ({ fileId }: MessagesProps) => {
         createdAt: new Date(),
         updatedAt: new Date(),
         userId: "",
-        fileId: "",
+        fileId: fileId,
       });
     } else {
       if (result.finishReason === "") {
@@ -81,8 +82,13 @@ const Messages = ({ fileId }: MessagesProps) => {
       {(dbMessages && dbMessages.length > 0) ||
       (messages && messages.messages.length > 0) ? (
         messages.messages.concat(dbMessages).map((message, index) => {
-          const isNextMessageSamePerson =
-            dbMessages[index - 1]?.isUserMessage === message.isUserMessage;
+          let isNextMessageSamePerson = false;
+          if (!prevMessage) {
+            prevMessage = message;
+          } else {
+            isNextMessageSamePerson =
+              prevMessage.isUserMessage === message.isUserMessage;
+          }
           if (index === dbMessages.length - 1) {
             return (
               <Message

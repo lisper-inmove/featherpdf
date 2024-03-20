@@ -1,8 +1,8 @@
 "use client";
 import {
-  BluetoothIcon,
   ChevronDown,
   ChevronUp,
+  FileText,
   Loader2,
   RotateCw,
   Search,
@@ -14,7 +14,14 @@ import { useToast } from "./ui/use-toast";
 import { useResizeDetector } from "react-resize-detector";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useState } from "react";
+import {
+  Ref,
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -26,23 +33,45 @@ import {
 } from "./ui/dropdown-menu";
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import SimpleBar from "simplebar-react";
-import PdfFullScreen from "./PdfFullscreen";
+import { clientTrpc } from "@/trpc-config/client";
+import Markdown from "react-markdown";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 interface PdfRendererProps {
   url: string;
+  fileId: string;
 }
 
-const PdfRenderer = ({ url }: PdfRendererProps) => {
+export interface PdfRenderRef {
+  closeConspectus: () => void;
+}
+
+const PdfRenderer = (
+  { url, fileId }: PdfRendererProps,
+  ref: Ref<PdfRenderRef>,
+) => {
   const { toast } = useToast();
-  const { width, ref } = useResizeDetector();
+  const { width, ref: resizeRef } = useResizeDetector();
   const [numPages, setNumPages] = useState<number>();
   const [currPage, setCurrPage] = useState<number>(1);
   const [scale, setScale] = useState<number>(1);
   const [rotation, setRotation] = useState<number>(0);
   const [renderedScale, setRenderedScale] = useState<number | null>(null);
+  const [isConspectusHover, setIsConspectusHover] = useState(true);
+  const [isConspectusClick, setIsConspectusClick] = useState(false);
   const isLoading = renderedScale !== scale;
+
+  const { data: fileConspectus } = clientTrpc.getFileConspectus.useQuery({
+    id: fileId,
+  });
+
+  const [conspectusMessage, setConspectusMessage] = useState<string>("");
+  useEffect(() => {
+    if (fileConspectus) {
+      setConspectusMessage(fileConspectus.conspectus);
+    }
+  }, [fileConspectus, fileId]);
 
   const CustomPageValidator = z.object({
     page: z
@@ -66,6 +95,19 @@ const PdfRenderer = ({ url }: PdfRendererProps) => {
     setCurrPage(Number(page));
     setValue("page", String(page));
   };
+
+  const closeConspectus = () => {
+    if (isConspectusClick || isConspectusHover) {
+      setIsConspectusClick(false);
+      setIsConspectusHover(false);
+    }
+  };
+
+  useImperativeHandle(ref, () => {
+    return {
+      closeConspectus: closeConspectus,
+    };
+  });
 
   return (
     <div className="w-full bg-white rounded-md shadow flex flex-col items-center">
@@ -117,7 +159,7 @@ const PdfRenderer = ({ url }: PdfRendererProps) => {
             <ChevronUp className="w-4 h-4" />
           </Button>
         </div>
-        <div className="space-x-2">
+        <div className="space-x-2 flex items-center mr-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button className="gap-1.5" aria-label="zoom" variant="ghost">
@@ -142,13 +184,31 @@ const PdfRenderer = ({ url }: PdfRendererProps) => {
           >
             <RotateCw className="h-4 w-4" />
           </Button>
-          <PdfFullScreen fileUrl={url} />
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <FileText
+              onMouseEnter={() => setIsConspectusHover(true)}
+              onMouseLeave={() => setIsConspectusHover(false)}
+              onClick={() => {
+                setIsConspectusClick(true);
+              }}
+              className="text-xl text-blue-300/95 cursor-pointer"
+            />
+            {(isConspectusClick || isConspectusHover) && (
+              <div className="absolute z-50 max-w-3xl bg-zinc-200/40 backdrop-blur-lg p-4 rounded-md mt-2">
+                <Markdown>{conspectusMessage}</Markdown>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
       <div className="flex-1 w-full max-h-sccreen">
         <SimpleBar autoHide={false} className="max-h-[calc(100vh-10rem)]">
-          <div ref={ref}>
+          <div ref={resizeRef}>
             <Document
               loading={
                 <div className="flex justify-center">
@@ -190,6 +250,9 @@ const PdfRenderer = ({ url }: PdfRendererProps) => {
                   </div>
                 }
                 onRenderSuccess={() => setRenderedScale(scale)}
+                inputRef={(ref) => {
+                  console.log(ref);
+                }}
               />
             </Document>
           </div>
@@ -199,4 +262,4 @@ const PdfRenderer = ({ url }: PdfRendererProps) => {
   );
 };
 
-export default PdfRenderer;
+export default forwardRef(PdfRenderer);

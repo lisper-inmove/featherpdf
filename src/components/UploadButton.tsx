@@ -19,7 +19,7 @@ const UploadDropzone = () => {
   const { startUpload } = useUploadThing("pdfUploader");
   const { toast } = useToast();
 
-  const { mutate: startPolling } = clientTrpc.getFile.useMutation({
+  const { mutate: startPolling } = clientTrpc.getFileId.useMutation({
     onSuccess: (file) => {
       router.push(`/dashboard/${file.id}`);
     },
