@@ -24,7 +24,7 @@ export const TrpcProvider = ({ children }: { children: ReactNode }) => {
       }),
   );
 
-  const url = process.env.TRPC_URL;
+  const url = process.env.NEXT_PUBLIC_TRPC_URL;
 
   const client = clientTrpc.createClient({
     transformer: superjson,
