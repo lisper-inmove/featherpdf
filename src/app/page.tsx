@@ -1,13 +1,11 @@
 import MaxWidthWrapper from "@/components/MaxWidthWrapper";
 import { buttonVariants } from "@/components/ui/button";
 import { linkDashboard, linkPricing } from "@/constants/link-href";
-import WebSocketService from "@/websocket-client/openai-client";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
-  let instance = WebSocketService.getInstance();
   return (
     <>
       <MaxWidthWrapper className="mb-12 mt-28 sm:mt-40 flex flex-col items-center justify-center text-center">

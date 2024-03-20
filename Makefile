@@ -23,8 +23,11 @@ bd:
 rd: # restart docker
 	sudo docker stop featherpdf_v1
 	sudo docker rm featherpdf_v1
-	sudo docker run --restart always -d --name featherpdf_v1 -p 9600:3000 mh.com:8890/test/featherpdf:v1.0
+	sudo docker run --restart always -d --name featherpdf_v1 -p 9701:3000 mh.com:8890/test/featherpdf:v1.0
 
 sd:
-	sudo docker run --restart always -d --name featherpdf_v1 -p 9600:3000 mh.com:8890/test/featherpdf:v1.0
+	sudo docker run --restart always -d --name featherpdf_v1 -p 9701:3000 mh.com:8890/test/featherpdf:v1.0
 
+
+t: build start
+	echo "Start"

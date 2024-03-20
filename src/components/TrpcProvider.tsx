@@ -6,8 +6,6 @@ import { httpBatchLink } from "@trpc/client";
 import superjson from "superjson";
 import { clientTrpc } from "@/trpc-config/client";
 
-const url = "http://localhost:9700/api/trpc";
-
 let token: string;
 
 export const setToken = (newToken: string) => {
@@ -25,6 +23,8 @@ export const TrpcProvider = ({ children }: { children: ReactNode }) => {
         },
       }),
   );
+
+  const url = process.env.TRPC_URL;
 
   const client = clientTrpc.createClient({
     transformer: superjson,

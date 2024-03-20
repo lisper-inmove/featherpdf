@@ -17,6 +17,7 @@ RUN apk add --no-cache make
 COPY . .
 
 RUN npm install --ignore-scripts=false --foreground-scripts --verbose sharp
+RUN npx prisma generate
 
 # 启动 Next.js 应用
 CMD ["npm", "start"]
