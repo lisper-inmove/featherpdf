@@ -1,7 +1,6 @@
 import Dashboard from "@/components/Dashboard";
 import { linkAuthCallback } from "@/constants/link-href";
 import { db } from "@/db";
-import { serverClientTrpc } from "@/trpc-config/server-client";
 import { getKindeServerSession } from "@kinde-oss/kinde-auth-nextjs/server";
 import { redirect } from "next/navigation";
 

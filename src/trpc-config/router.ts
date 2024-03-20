@@ -9,6 +9,14 @@ export const appRouter = router({
   test: publicProcedure.query(() => {
     return "hello";
   }),
+  userSession: publicProcedure.query(async () => {
+    const { getUser } = getKindeServerSession();
+    const user = await getUser();
+    if (!user || !user.id || !user.email) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+    return { code: "success", user: user };
+  }),
   authCallback: publicProcedure.query(async () => {
     const { getUser } = getKindeServerSession();
     const user = await getUser();
