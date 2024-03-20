@@ -9,19 +9,25 @@ import { Button } from "./ui/button";
 import { useState } from "react";
 
 const Dashboard = () => {
-  const utils = clientTrpc.useContext();
   const [currentDeletingFile, setCurrentDeletingFile] = useState<string | null>(
     null,
   );
 
+  const utils = clientTrpc.useUtils();
+
   const { data: files, isLoading } = clientTrpc.getUserFiles.useQuery();
 
   const { mutate: deleteFile } = clientTrpc.deleteFile.useMutation({
-    onSuccess: () => {
-      utils.getUserFiles.invalidate();
+    onMutate: (data) => {
+      if (data) {
+        setCurrentDeletingFile(data.id);
+      }
     },
     onSettled() {
       setCurrentDeletingFile(null);
+    },
+    onSuccess: () => {
+      utils.getUserFiles.invalidate();
     },
   });
 
