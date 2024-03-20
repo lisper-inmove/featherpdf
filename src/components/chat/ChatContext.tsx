@@ -1,12 +1,15 @@
 import React, { ReactNode, createContext, useState } from "react";
 import { useToast } from "../ui/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { Message } from "@prisma/client";
 import useMessages from "@/my-hooks/use-message";
 
 type StreamResponse = {
   addMessage: () => void;
-  addParamMessage: (message: string, addToContext?: boolean) => void;
+  addParamMessage: (
+    message: string,
+    addToContext?: boolean,
+    isUserMessage?: boolean,
+  ) => void;
   message: string;
   handleInputChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void;
   isLoading: boolean;
@@ -33,16 +36,19 @@ export const ChatContextProvider = ({ fileId, children }: Props) => {
   const { mutate: sendMessage } = useMutation({
     mutationFn: async ({
       message,
-      addToContext,
+      addToContext = true,
+      isUserMessage = true,
     }: {
       message: string;
       addToContext?: boolean;
+      isUserMessage?: boolean;
     }) => {
       const response = await fetch("/api/message", {
         method: "POST",
         body: JSON.stringify({
           fileId,
           message,
+          isUserMessage,
         }),
       });
       if (!response.ok) throw new Error("Failed to send message");
@@ -57,8 +63,12 @@ export const ChatContextProvider = ({ fileId, children }: Props) => {
   const addMessage = () => {
     return sendMessage({ message });
   };
-  const addParamMessage = (message: string, addToContext?: boolean) => {
-    return sendMessage({ message, addToContext });
+  const addParamMessage = (
+    message: string,
+    addToContext?: boolean,
+    isUserMessage?: boolean,
+  ) => {
+    return sendMessage({ message, addToContext, isUserMessage });
   };
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);

@@ -10,7 +10,7 @@ export const POST = async (req: NextRequest) => {
   const user = await getUser();
   if (!user || !user.id) return new Response("Unauthorized", { status: 401 });
 
-  const { fileId, message } = SendMessageValidator.parse(body);
+  const { fileId, message, isUserMessage } = SendMessageValidator.parse(body);
   // get file
   const file = await db.file.findFirst({
     where: {
@@ -23,7 +23,7 @@ export const POST = async (req: NextRequest) => {
   const result = await db.message.create({
     data: {
       text: message,
-      isUserMessage: true,
+      isUserMessage: isUserMessage,
       userId: user.id!,
       fileId,
     },

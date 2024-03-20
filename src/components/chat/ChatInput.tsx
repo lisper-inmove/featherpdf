@@ -51,7 +51,6 @@ const ChatInput = ({ isDisabled, fileId }: ChatInputProps) => {
                 disabled={isLoading || isDisabled}
                 aria-label="send message"
                 className="absolute bottom-1.5 right-[8px]"
-                type="submit"
                 onClick={(e) => {
                   e.preventDefault();
                   addParamMessage(textareRef.current?.value);
