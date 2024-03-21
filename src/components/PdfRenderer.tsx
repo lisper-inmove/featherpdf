@@ -13,7 +13,6 @@ import "react-pdf/dist/Page/TextLayer.css";
 import { useToast } from "./ui/use-toast";
 import { useResizeDetector } from "react-resize-detector";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import {
   Ref,
   forwardRef,
@@ -22,9 +21,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { cn, isInteger } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -74,29 +70,6 @@ const PdfRenderer = (
     }
   }, [file, fileId]);
 
-  const CustomPageValidator = z.object({
-    page: z
-      .string()
-      .refine((num) => Number(num) > 0 && Number(num) <= pageState.numPages!),
-  });
-  type TCustomPageValidator = z.infer<typeof CustomPageValidator>;
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-  } = useForm<TCustomPageValidator>({
-    defaultValues: {
-      page: "1",
-    },
-    resolver: zodResolver(CustomPageValidator),
-  });
-
-  const handlePageSubmit = ({ page }: TCustomPageValidator) => {
-    pageState.setCurrPage(Number(page));
-    setValue("page", String(page));
-  };
-
   const closeConspectus = () => {
     if (isConspectusClick || isConspectusHover) {
       setIsConspectusClick(false);
@@ -120,7 +93,6 @@ const PdfRenderer = (
             aria-label="previous page"
             onClick={() => {
               pageState.setCurrPage(pageState.currPage - 1);
-              setValue("page", String(pageState.currPage - 1));
             }}
           >
             <ChevronDown className="w-4 h-4" />
@@ -173,7 +145,6 @@ const PdfRenderer = (
             aria-label="next page"
             onClick={() => {
               pageState.setCurrPage(pageState.currPage + 1);
-              setValue("page", String(pageState.currPage + 1));
             }}
           >
             <ChevronUp className="w-4 h-4" />
