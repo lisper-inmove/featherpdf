@@ -3,6 +3,7 @@ import { Message as MessageEntity } from "@prisma/client";
 import { Icons } from "../Icons";
 import ReactMarkdown from "react-markdown";
 import { forwardRef } from "react";
+import usePageNumber from "@/my-hooks/use-page-number";
 
 interface MessageProps {
   message: MessageEntity;
@@ -11,6 +12,7 @@ interface MessageProps {
 
 const Message = forwardRef<HTMLDivElement, MessageProps>(
   ({ message, isNextMessageSamePerson }: MessageProps, ref) => {
+    const pageState = usePageNumber();
     return (
       <>
         <div
@@ -55,6 +57,24 @@ const Message = forwardRef<HTMLDivElement, MessageProps>(
                 className={cn("prose", {
                   "text-zinc-50": message.isUserMessage,
                 })}
+                components={{
+                  a({ node, children, ...props }) {
+                    console.log(props);
+                    const pageNumber = Number.parseInt(props.href);
+                    return (
+                      <a
+                        {...props}
+                        className="text-white inline-block bg-blue-200 px-2 rounded-lg"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          pageState.setCurrPage(pageNumber);
+                        }}
+                      >
+                        {children}
+                      </a>
+                    );
+                  },
+                }}
               >
                 {message.text}
               </ReactMarkdown>

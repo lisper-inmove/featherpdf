@@ -19,3 +19,8 @@ export function generateRandomString(length: number): string {
 
   return result;
 }
+
+export function isInteger(str: string): boolean {
+  // 正则表达式检查字符串是否只包含数字（也可以处理正负号）
+  return /^-?\d+$/.test(str);
+}

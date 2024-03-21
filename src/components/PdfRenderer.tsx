@@ -25,7 +25,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { cn } from "@/lib/utils";
+import { cn, isInteger } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,7 +34,8 @@ import {
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import SimpleBar from "simplebar-react";
 import { clientTrpc } from "@/trpc-config/client";
-import Markdown from "react-markdown";
+import ReactMarkdown from "react-markdown";
+import usePageNumber from "@/my-hooks/use-page-number";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
@@ -53,30 +54,30 @@ const PdfRenderer = (
 ) => {
   const { toast } = useToast();
   const { width, ref: resizeRef } = useResizeDetector();
-  const [numPages, setNumPages] = useState<number>();
-  const [currPage, setCurrPage] = useState<number>(1);
+  const pageState = usePageNumber();
   const [scale, setScale] = useState<number>(1);
   const [rotation, setRotation] = useState<number>(0);
   const [renderedScale, setRenderedScale] = useState<number | null>(null);
-  const [isConspectusHover, setIsConspectusHover] = useState(true);
+  const [isConspectusHover, setIsConspectusHover] = useState(false);
   const [isConspectusClick, setIsConspectusClick] = useState(false);
+  const pageInputRef = useRef<HTMLInputElement>(null);
   const isLoading = renderedScale !== scale;
 
-  const { data: fileConspectus } = clientTrpc.getFileConspectus.useQuery({
+  const { data: file } = clientTrpc.getFileConspectus.useQuery({
     id: fileId,
   });
 
   const [conspectusMessage, setConspectusMessage] = useState<string>("");
   useEffect(() => {
-    if (fileConspectus) {
-      setConspectusMessage(fileConspectus.conspectus);
+    if (file) {
+      setConspectusMessage(file.conspectus);
     }
-  }, [fileConspectus, fileId]);
+  }, [file, fileId]);
 
   const CustomPageValidator = z.object({
     page: z
       .string()
-      .refine((num) => Number(num) > 0 && Number(num) <= numPages!),
+      .refine((num) => Number(num) > 0 && Number(num) <= pageState.numPages!),
   });
   type TCustomPageValidator = z.infer<typeof CustomPageValidator>;
   const {
@@ -92,7 +93,7 @@ const PdfRenderer = (
   });
 
   const handlePageSubmit = ({ page }: TCustomPageValidator) => {
-    setCurrPage(Number(page));
+    pageState.setCurrPage(Number(page));
     setValue("page", String(page));
   };
 
@@ -114,51 +115,71 @@ const PdfRenderer = (
       <div className="h-14 w-full border-b border-zinc-200 flex items-center justify-between px-2">
         <div className="flex items-center gap-1.5">
           <Button
-            disabled={currPage <= 1}
+            disabled={pageState.currPage <= 1}
             variant="ghost"
             aria-label="previous page"
             onClick={() => {
-              setCurrPage((prev) => {
-                return prev - 1 > 1 ? prev - 1 : 1;
-              });
-              setValue("page", String(currPage - 1));
+              pageState.setCurrPage(pageState.currPage - 1);
+              setValue("page", String(pageState.currPage - 1));
             }}
           >
             <ChevronDown className="w-4 h-4" />
           </Button>
           <div className="flex items-center gap-1.5">
-            <Input
+            <input
+              ref={pageInputRef}
               className={cn(
-                "w-12 h-8 ring-1 ring-red-500/0",
-                errors.page ? "focus-visible:ring-red-500" : "",
+                "w-12 h-8 ring-1 ring-zinc-200 rounded-sm focus:ring-zinc-200 text-center",
               )}
-              {...register("page")}
+              value={String(pageState.displayPage)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
-                  handleSubmit(handlePageSubmit)();
+                  pageState.setCurrPage(
+                    Number.parseInt(pageInputRef.current?.value),
+                  );
+                }
+              }}
+              onChange={(e) => {
+                if (!isInteger(e.target.value)) {
+                  toast({
+                    title: "Not a Number",
+                    description: `Please input a number not ' ${e.target.value} '`,
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                const newPageNumber = Number.parseInt(e.target.value);
+                if (newPageNumber < 1 || newPageNumber > pageState.numPages) {
+                  toast({
+                    title: "Wrong number",
+                    description: `Please input number between ${1} ~ ${pageState.numPages}`,
+                    variant: "destructive",
+                  });
+                  pageState.setDisplayPage(pageState.currPage);
+                } else {
+                  pageState.setDisplayPage(Number.parseInt(e.target.value));
                 }
               }}
             />
             <p className="text-zinc-700 text-sm space-x-1">
               <span>/</span>
-              <span>{numPages ?? "x"}</span>
+              <span>{pageState.numPages ?? "x"}</span>
             </p>
           </div>
 
           <Button
-            disabled={numPages === undefined || currPage === numPages}
+            disabled={pageState.currPage === pageState.numPages}
             variant="ghost"
             aria-label="next page"
             onClick={() => {
-              setCurrPage((prev) => {
-                return prev + 1 < numPages! ? prev + 1 : numPages!;
-              });
-              setValue("page", String(currPage + 1));
+              pageState.setCurrPage(pageState.currPage + 1);
+              setValue("page", String(pageState.currPage + 1));
             }}
           >
             <ChevronUp className="w-4 h-4" />
           </Button>
         </div>
+        <div>{file && file.name}</div>
         <div className="space-x-2 flex items-center mr-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -199,7 +220,7 @@ const PdfRenderer = (
             />
             {(isConspectusClick || isConspectusHover) && (
               <div className="absolute z-50 max-w-3xl bg-zinc-200/40 backdrop-blur-lg p-4 rounded-md mt-2">
-                <Markdown>{conspectusMessage}</Markdown>
+                <ReactMarkdown>{conspectusMessage}</ReactMarkdown>
               </div>
             )}
           </div>
@@ -223,7 +244,7 @@ const PdfRenderer = (
                 });
               }}
               onLoadSuccess={({ numPages }) => {
-                setNumPages(numPages);
+                pageState.setNumPages(numPages);
               }}
               file={url}
               className="max-h-full"
@@ -231,7 +252,7 @@ const PdfRenderer = (
               {isLoading && renderedScale ? (
                 <Page
                   width={width ? width : 1}
-                  pageNumber={currPage}
+                  pageNumber={pageState.currPage}
                   key={"@" + renderedScale}
                   scale={scale}
                   rotate={rotation}
@@ -240,7 +261,7 @@ const PdfRenderer = (
               <Page
                 className={cn(isLoading ? "hidden" : "")}
                 width={width ? width : 1}
-                pageNumber={currPage}
+                pageNumber={pageState.currPage}
                 scale={scale}
                 rotate={rotation}
                 key={"@" + scale}
@@ -250,9 +271,6 @@ const PdfRenderer = (
                   </div>
                 }
                 onRenderSuccess={() => setRenderedScale(scale)}
-                inputRef={(ref) => {
-                  console.log(ref);
-                }}
               />
             </Document>
           </div>

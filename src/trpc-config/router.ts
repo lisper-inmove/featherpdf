@@ -121,6 +121,7 @@ export const appRouter = router({
         select: {
           conspectus: true,
           uploadStatus: true,
+          name: true,
         },
       });
       if (!file) throw new TRPCError({ code: "NOT_FOUND" });

@@ -1,5 +1,4 @@
 import React, { ReactNode, createContext, useState } from "react";
-import { useToast } from "../ui/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import useMessages from "@/my-hooks/use-message";
 
@@ -31,7 +30,6 @@ interface Props {
 export const ChatContextProvider = ({ fileId, children }: Props) => {
   const [message, setMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { toast } = useToast();
   const messages = useMessages();
   const { mutate: sendMessage } = useMutation({
     mutationFn: async ({

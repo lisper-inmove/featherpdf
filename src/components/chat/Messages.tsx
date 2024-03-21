@@ -76,6 +76,10 @@ const Messages = ({ fileId }: MessagesProps) => {
   }, [entry, fetchNextPage]);
 
   client.registerHandler(Action.EMBEDDING_QUERY_RESPONSE, handleNewMessage);
+  console.log("start >>>>>>>>>>>>>>>>>>>");
+  console.log(dbMessages);
+  console.log(messages);
+  console.log("end >>>>>>>>>>>>>>>>>>>>>");
 
   return (
     <div className="flex max-h-[calc(100vh-3.5rem-7rem)] border-zinc-200 flex-1 flex-col-reverse gap-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollerbar-w-2 scrolling-touch">
@@ -89,7 +93,7 @@ const Messages = ({ fileId }: MessagesProps) => {
             isNextMessageSamePerson =
               prevMessage.isUserMessage === message.isUserMessage;
           }
-          if (index === dbMessages.length - 1) {
+          if (dbMessages && index === dbMessages.length - 1) {
             return (
               <Message
                 ref={ref}

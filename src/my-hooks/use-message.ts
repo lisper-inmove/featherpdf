@@ -1,14 +1,22 @@
 import { Message } from "@prisma/client";
+import { dir } from "console";
 import { create } from "zustand";
 
 interface MessagesState {
   messages: Message[];
   addMessage: (message: Message) => void;
   setContent: (content: string) => void;
+  resetMessages: () => void;
 }
 
 const useMessages = create<MessagesState>((set) => ({
   messages: [],
+  resetMessages: () => {
+    set((state) => ({
+      ...state,
+      messages: [],
+    }));
+  },
   setContent: (content: string) => {
     set((state) => {
       if (state.messages.length > 0) {

@@ -7,6 +7,7 @@ import {
 import {
   EmbeddingPdfRequest,
   QueryTextRequest,
+  ReadPdfRequest,
 } from "@/proto/api/api_featherpdf";
 import ReconnectingWebSocket from "reconnecting-websocket";
 
@@ -58,6 +59,18 @@ class WebSocketService {
       WebSocketService.instance = new WebSocketService();
     }
     return WebSocketService.instance;
+  }
+
+  public async readPdf(req: ReadPdfRequest) {
+    await this.openPromise;
+    const request = encodeRequest({
+      action: Action.READ_PDF_REQUEST,
+      content: JSON.stringify({
+        fileId: req.fileId,
+        fileUrl: req.fileUrl,
+      }),
+    });
+    this.ws?.send(request);
   }
 
   public async embeddingTextQuery(req: QueryTextRequest) {

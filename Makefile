@@ -6,6 +6,7 @@ build:
 	cp .env.dev .env
 
 dev:
+	cp .env.dev .env
 	NEXT_PUBLIC_HOST=http://192.168.3.124:9700 npm run dev
 
 start:
@@ -27,6 +28,8 @@ rd: # restart docker
 
 sd:
 	sudo docker run --restart always -d --name featherpdf_v1 -p 9701:3000 mh.com:8890/test/featherpdf:v1.0
+stop:
+	sudo docker stop featherpdf_v1 && sudo docker rm featherpdf_v1
 
 
 t: build start
