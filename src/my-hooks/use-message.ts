@@ -1,5 +1,4 @@
 import { Message } from "@prisma/client";
-import { dir } from "console";
 import { create } from "zustand";
 
 interface MessagesState {

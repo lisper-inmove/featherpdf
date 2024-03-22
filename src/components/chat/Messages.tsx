@@ -20,7 +20,7 @@ interface MessagesProps {
 
 const Messages = ({ fileId }: MessagesProps) => {
   const { addParamMessage } = useContext(ChatContext);
-  const messages = useMessages();
+  const { messages, resetMessages, addMessage, setContent } = useMessages();
   const [newContent, setNewContent] = useState<string>("");
   let prevMessage = null;
 
@@ -42,7 +42,7 @@ const Messages = ({ fileId }: MessagesProps) => {
   const handleNewMessage = (data: any) => {
     const result = data as ChitchatCommonResponse;
     if (result.role === "assistant") {
-      messages.addMessage({
+      addMessage({
         id: generateRandomString(12),
         text: newContent,
         isUserMessage: false,
@@ -54,7 +54,7 @@ const Messages = ({ fileId }: MessagesProps) => {
     } else {
       if (result.finishReason === "") {
         setNewContent((prevContent) => prevContent + result.content);
-        messages.setContent(newContent + result.content);
+        setContent(newContent + result.content);
       } else {
         addParamMessage(newContent, false, false);
         setNewContent("");
@@ -75,17 +75,19 @@ const Messages = ({ fileId }: MessagesProps) => {
     }
   }, [entry, fetchNextPage]);
 
+  useEffect(() => {
+    return () => {
+      resetMessages();
+    };
+  }, [resetMessages]);
+
   client.registerHandler(Action.EMBEDDING_QUERY_RESPONSE, handleNewMessage);
-  console.log("start >>>>>>>>>>>>>>>>>>>");
-  console.log(dbMessages);
-  console.log(messages);
-  console.log("end >>>>>>>>>>>>>>>>>>>>>");
 
   return (
     <div className="flex max-h-[calc(100vh-3.5rem-7rem)] border-zinc-200 flex-1 flex-col-reverse gap-4 p-3 overflow-y-auto scrollbar-thumb-blue scrollbar-thumb-rounded scrollbar-track-blue-lighter scrollerbar-w-2 scrolling-touch">
       {(dbMessages && dbMessages.length > 0) ||
-      (messages && messages.messages.length > 0) ? (
-        messages.messages.concat(dbMessages).map((message, index) => {
+      (messages && messages.length > 0) ? (
+        messages.concat(dbMessages).map((message, index) => {
           let isNextMessageSamePerson = false;
           if (!prevMessage) {
             prevMessage = message;

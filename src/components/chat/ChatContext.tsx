@@ -1,4 +1,4 @@
-import React, { ReactNode, createContext, useState } from "react";
+import React, { ReactNode, createContext, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import useMessages from "@/my-hooks/use-message";
 
@@ -30,7 +30,7 @@ interface Props {
 export const ChatContextProvider = ({ fileId, children }: Props) => {
   const [message, setMessage] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const messages = useMessages();
+  const { addMessage: addMessageLocal, resetMessages } = useMessages();
   const { mutate: sendMessage } = useMutation({
     mutationFn: async ({
       message,
@@ -52,7 +52,7 @@ export const ChatContextProvider = ({ fileId, children }: Props) => {
       if (!response.ok) throw new Error("Failed to send message");
       const result = await response.json();
       if (addToContext !== false) {
-        messages.addMessage(result);
+        addMessageLocal(result);
       }
       return result;
     },
@@ -71,6 +71,11 @@ export const ChatContextProvider = ({ fileId, children }: Props) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
   };
+  useEffect(() => {
+    return () => {
+      resetMessages();
+    };
+  }, [resetMessages]);
   return (
     <ChatContext.Provider
       value={{

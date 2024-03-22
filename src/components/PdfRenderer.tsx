@@ -32,8 +32,21 @@ import SimpleBar from "simplebar-react";
 import { clientTrpc } from "@/trpc-config/client";
 import ReactMarkdown from "react-markdown";
 import usePageNumber from "@/my-hooks/use-page-number";
+import { RenderZoomProps, zoomPlugin } from "@react-pdf-viewer/zoom";
+import { RenderRotateProps, rotatePlugin } from "@react-pdf-viewer/rotate";
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
+// Import the main component
+import {
+  Viewer,
+  SpecialZoomLevel,
+  RotateDirection,
+  Worker,
+} from "@react-pdf-viewer/core";
+
+// Import the styles
+import "@react-pdf-viewer/core/lib/styles/index.css";
+
+// pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
 interface PdfRendererProps {
   url: string;
@@ -58,6 +71,11 @@ const PdfRenderer = (
   const [isConspectusClick, setIsConspectusClick] = useState(false);
   const pageInputRef = useRef<HTMLInputElement>(null);
   const isLoading = renderedScale !== scale;
+
+  const zoomPluginInstance = zoomPlugin();
+  const { Zoom } = zoomPluginInstance;
+  const rotatePluginInstance = rotatePlugin();
+  const { Rotate } = rotatePluginInstance;
 
   const { data: file } = clientTrpc.getFileConspectus.useQuery({
     id: fileId,
@@ -85,7 +103,7 @@ const PdfRenderer = (
 
   return (
     <div className="w-full bg-white rounded-md shadow flex flex-col items-center">
-      <div className="h-14 w-full border-b border-zinc-200 flex items-center justify-between px-2">
+      <div className="h-14 w-full border-b border-zinc-200 flex items-center justify-between px-6">
         <div className="flex items-center gap-1.5">
           <Button
             disabled={pageState.currPage <= 1}
@@ -157,25 +175,76 @@ const PdfRenderer = (
               <Button className="gap-1.5" aria-label="zoom" variant="ghost">
                 <Search className="w-4 h-4"></Search>
                 {scale * 100}%
-                <ChevronDown className="h-3 w-3 opacity-50"></ChevronDown>
+                <ChevronDown className="h-2 w-2 opacity-50"></ChevronDown>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onSelect={() => setScale(1)}>
-                100%
+              <DropdownMenuItem>
+                <Zoom>
+                  {(props: RenderZoomProps) => (
+                    <p
+                      onClick={() => {
+                        props.onZoom(0.5);
+                        setScale(0.5);
+                      }}
+                    >
+                      50%
+                    </p>
+                  )}
+                </Zoom>
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setScale(1.5)}>
-                150%
+              <DropdownMenuItem>
+                <Zoom>
+                  {(props: RenderZoomProps) => (
+                    <p
+                      onClick={() => {
+                        props.onZoom(1);
+                        setScale(1);
+                      }}
+                    >
+                      100%
+                    </p>
+                  )}
+                </Zoom>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Zoom>
+                  {(props: RenderZoomProps) => (
+                    <p
+                      onClick={() => {
+                        props.onZoom(1.5);
+                        setScale(1.5);
+                      }}
+                    >
+                      150%
+                    </p>
+                  )}
+                </Zoom>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Zoom>
+                  {(props: RenderZoomProps) => (
+                    <p
+                      onClick={() => {
+                        props.onZoom(2);
+                        setScale(2);
+                      }}
+                    >
+                      200%
+                    </p>
+                  )}
+                </Zoom>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button
-            aria-label="rotate 90 degrees"
-            variant="ghost"
-            onClick={() => setRotation((prev) => prev + 90)}
-          >
-            <RotateCw className="h-4 w-4" />
-          </Button>
+          <Rotate direction={RotateDirection.Backward}>
+            {(props: RenderRotateProps) => (
+              <RotateCw
+                className="h-4 w-4 hover:cursor-pointer"
+                onClick={props.onClick}
+              />
+            )}
+          </Rotate>
           <div
             onClick={(e) => {
               e.stopPropagation();
@@ -187,7 +256,7 @@ const PdfRenderer = (
               onClick={() => {
                 setIsConspectusClick(true);
               }}
-              className="text-xl text-blue-300/95 cursor-pointer"
+              className="text-blue-900/95 cursor-pointer"
             />
             {(isConspectusClick || isConspectusHover) && (
               <div className="absolute z-50 max-w-3xl bg-zinc-200/40 backdrop-blur-lg p-4 rounded-md mt-2">
@@ -201,49 +270,21 @@ const PdfRenderer = (
       <div className="flex-1 w-full max-h-sccreen">
         <SimpleBar autoHide={false} className="max-h-[calc(100vh-10rem)]">
           <div ref={resizeRef}>
-            <Document
-              loading={
-                <div className="flex justify-center">
-                  <Loader2 className="my-24 h-6 w-6 animate-spin" />
-                </div>
-              }
-              onLoadError={() => {
-                toast({
-                  title: "Error loading PDF",
-                  description: "Please try again later",
-                  variant: "destructive",
-                });
-              }}
-              onLoadSuccess={({ numPages }) => {
-                pageState.setNumPages(numPages);
-              }}
-              file={url}
-              className="max-h-full"
+            <Worker
+              workerUrl={`https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`}
             >
-              {isLoading && renderedScale ? (
-                <Page
-                  width={width ? width : 1}
-                  pageNumber={pageState.currPage}
-                  key={"@" + renderedScale}
-                  scale={scale}
-                  rotate={rotation}
-                />
-              ) : null}
-              <Page
-                className={cn(isLoading ? "hidden" : "")}
-                width={width ? width : 1}
-                pageNumber={pageState.currPage}
-                scale={scale}
-                rotate={rotation}
-                key={"@" + scale}
-                loading={
-                  <div className="flex justify-center">
-                    <Loader2 className="my-24 h-6 w-6 animate-spin"></Loader2>
-                  </div>
-                }
-                onRenderSuccess={() => setRenderedScale(scale)}
-              />
-            </Document>
+              <Viewer
+                plugins={[zoomPluginInstance, rotatePluginInstance]}
+                fileUrl={url}
+                initialPage={1}
+                onZoom={(data) => {
+                  console.log(data);
+                }}
+                onDocumentLoad={(data) => {
+                  pageState.setNumPages(data.doc.numPages);
+                }}
+              ></Viewer>
+            </Worker>
           </div>
         </SimpleBar>
       </div>

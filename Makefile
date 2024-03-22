@@ -18,8 +18,10 @@ api:
 	cd src/proto && make api-typescript
 
 bd:
+	cp .env.prod .env
 	sudo docker build -t mh.com:8890/test/featherpdf:v1.0 .
 	sudo docker push mh.com:8890/test/featherpdf:v1.0
+	cp .env.dev .env
 
 rd: # restart docker
 	sudo docker stop featherpdf_v1
