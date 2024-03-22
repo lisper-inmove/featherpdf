@@ -3,8 +3,7 @@
 import { ChitchatCommonResponse } from "@/proto/api/api_chitchat";
 import { Action } from "@/proto/api/api_common";
 import WebSocketService from "@/websocket-client/openai-client";
-import { useContext, useEffect, useRef, useState } from "react";
-import { ChatContext } from "./ChatContext";
+import { useEffect, useRef, useState } from "react";
 import { generateRandomString } from "@/lib/utils";
 import useMessages from "@/my-hooks/use-message";
 import { clientTrpc } from "@/trpc-config/client";
@@ -19,7 +18,7 @@ interface MessagesProps {
 }
 
 const Messages = ({ fileId }: MessagesProps) => {
-  const { addParamMessage } = useContext(ChatContext);
+  const { mutate: addMessageDb } = clientTrpc.addMessage.useMutation();
   const { messages, resetMessages, addMessage, setContent } = useMessages();
   const [newContent, setNewContent] = useState<string>("");
   let prevMessage = null;
@@ -56,7 +55,11 @@ const Messages = ({ fileId }: MessagesProps) => {
         setNewContent((prevContent) => prevContent + result.content);
         setContent(newContent + result.content);
       } else {
-        addParamMessage(newContent, false, false);
+        addMessageDb({
+          fileId,
+          message: newContent,
+          isUserMessage: false,
+        });
         setNewContent("");
       }
     }

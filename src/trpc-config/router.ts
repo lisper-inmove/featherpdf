@@ -170,6 +170,34 @@ export const appRouter = router({
       });
       return file;
     }),
+  addMessage: privateProcedure
+    .input(
+      z.object({
+        fileId: z.string(),
+        message: z.string(),
+        isUserMessage: z.boolean(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { userId } = ctx;
+      const file = await db.file.findFirst({
+        where: {
+          id: input.fileId,
+          userId: userId,
+        },
+      });
+      if (!file) return { code: "fail" };
+      const result = await db.message.create({
+        data: {
+          text: input.message,
+          isUserMessage: input.isUserMessage,
+          userId: userId,
+          fileId: input.fileId,
+        },
+      });
+      console.log("addMessage", result);
+      return { code: "success", message: result };
+    }),
 });
 
 export type AppRouter = typeof appRouter;
